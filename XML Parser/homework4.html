@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>Homework 4</title>
+        
+        <style type="text/css">
+            body {background: rgb(226,226,226);}
+        </style>
+        
+        <script type="text/javascript">
+            var text="";
+            var flag=true;
+            var xmlDoc;
+            var xmlhttp;
+            var Win;
+            //Function to create the XML DOM object and calls the createHTML() to parse the XML
+            function parsexml(ar)   
+                {
+                    var url=ar.URL.value;
+                    
+                    if(url=="")
+                    {
+                        alert("Enter a URL!!!");
+                        return(null);
+                    }
+                    function loadXML(url)
+                    {	
+                        if (window.XMLHttpRequest)
+                        {// code for IE7+, Firefox, Chrome, Opera, Safari
+                            xmlhttp=new XMLHttpRequest();
+                        }
+                        else
+                        {// code for IE6, IE5
+                            xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                        }
+                        xmlhttp.open("GET",url,false);
+                        try
+                        {
+                            xmlhttp.send();
+                        }
+                        catch(exception)
+                        {
+                            alert("XML File doesn't exist!!!\n"+"Please Enter a URL present in the same domain");
+                            document.getElementById("URL").focus();
+                            document.getElementById("URL").select();
+                        }
+                            
+           
+                        //xmlDoc=xmlhttp.responseXML;
+                        if(xmlhttp.status===200)
+                        {
+                            xmlDoc=xmlhttp.responseXML;
+                        }
+                        else
+                        {
+                            alert("XML file doesnot exist");
+                        }    
+                        /*if(!xmlDoc)
+                        {
+                            alert("XML File not found!!!");
+                        } */
+                        return xmlDoc;
+                    }
+                    xmlDoc = loadXML(url);
+                    if(window.ActiveXobject) //IF IE
+                    { 
+                        if(xmlDoc.parseError.errorCode !=0)
+                        {
+                            var Err=xmlDoc.parseError;
+                            generateError(xmlDoc);
+                            alert("Error in XML!!!\n"+"Invalid XML File");
+                        }
+                        else
+                        {
+                            createHTML(xmlDoc);
+                            Win= window.open("", "abhi", "height=600,width=900,scrollbars=yes,toolbar=yes,menubar=yes");
+                            Win.document.write(text);
+                        }
+                    }	
+                    else //other browsers
+                    {
+                        if (xmlDoc.documentElement.nodeName=="parsererror")
+                        {
+                            alert("Error in XML!!!\n"+"Invalid XML File");
+                            document.getElementById("URL").focus();
+                            document.getElementById("URL").select();
+                        }
+                        else
+                        {
+                            //var check_workbook=xmlDoc.getElementsByTagName("Workbook")[0].childNodes;
+                            var check_workbook=xmlDoc.getElementsByTagName("Workbook");
+                            var check_row=xmlDoc.getElementsByTagName("Row");
+                            if(check_workbook.length==0)
+                            {
+                                alert("There are no Workbooks listed in the XML file!!!");
+                                flag=false;
+                            }
+                            if(check_row.length==0)
+                            {
+                                alert("There are no cable network companies listed in the XML file!!!");
+                                flag=false;
+                            }
+                         /*   var check_header=xmlDoc.getElementsByTagName("Data");
+if(check_header[0].childNodes[0].nodeValue=="Network" && check_header[1].childNodes[0].nodeValue=="Owner"  && check_header[2].childNodes[0].nodeValue=="Feeds" && check_header[3].childNodes[0].nodeValue=="Notes" && check_header[4].childNodes[0].nodeValue=="HomePage"  && check_header[5].childNodes[0].nodeValue=="Logo" )
+                                {
+                                    
+                                }
+                                else
+                                {
+                                    alert("Header Values are not proper!!!");
+                                    flag=false;
+                                }
+                                 */
+                            if(flag==true)
+                            {
+                                text="";
+                                xmlDoc.onload=createHTML(xmlDoc);
+                                Win=window.open(" ","_blank","toolbar=yes, scrollbars=yes, resizable=yes, top=300, left=200, width=900, height=500");
+                                Win.document.write(text);
+                            }
+                        }
+                    }
+            Win.document.close();
+            }/*End of parsexml() */
+            
+            //Function to parse the xml
+            function createHTML(xmlDoc)
+            {
+                var ELEMENT_NODE =1; 
+                //root=xmlDoc.DocumentElement;
+                var workbook=xmlDoc.getElementsByTagName("Workbook")[0].childNodes;             // Workbook
+                
+                //gets the number of childnodes from the first Listings element.
+                text+="<html><title>Stocks of Network Companies</title><h2>Table containing stocks of Network Companies</h2>";
+                text +="<table border='3' style='border-collapse:collapse;'>";
+                var i=0;
+                for(i=0;i<workbook.length;i++)
+                {
+                    //item method returns the node at the specified index in the node list  i.e item = Table
+                    if(workbook.item(i).nodeType==ELEMENT_NODE)           //checking for Listing element node    --> Table
+                    {
+                        var table=workbook.item(i).childNodes;
+                        var j=0;
+                        //gets the number of childnodes for first Table element. i.e.  Header and Row
+                        for(j=0;j<table.length;j++)
+                        {
+                               //item = Header
+                            if(table.item(j).nodeType==ELEMENT_NODE)            //checking for Header element node
+                            {
+                                if(table.item(j).nodeName=="Header")            //check for header here
+                                {
+                                    text +="<tr style='background:orange;text-align:center;font-weight:bolder;'>";
+                                    var header=table.item(j).childNodes;            // gets the childnodes of Location
+                                    var k=0;
+                                    for(k=0;k<header.length;k++)
+                                    {
+                                        if(header.item(k).nodeType==ELEMENT_NODE)
+                                        {
+                                            if(header.item(k).hasChildNodes())
+                        //hasChildNodes() returns true if the current element node has child nodes , else returns false
+                                            {
+                                                if(header.item(k).firstChild.nodeValue!=" ")
+                                                {
+                                                    text +="<td>"+ header.item(k).firstChild.nodeValue+"</td>";
+                                                }
+                                                else
+                                                {
+                                                    text +="<td>&nbsp;</td>";
+                                                } 
+                                            }
+                                            else
+                                            {
+                                                text +="<td>&nbsp;</td>";
+                                            }
+
+                                        }
+                                    }
+                                       text +="</tr>";
+                                }/*End of Header */
+                                
+                                if(table.item(j).nodeName=="Row")          //checking for Element node Row
+                                {
+                                    text +="<tr>";
+                                    //get the childnodes of Listing details
+                                    var rowchild=table.item(j).childNodes; 
+                                    var k=0;
+                                    for(k=0;k<rowchild.length;k++)
+                                    {
+                                        if(rowchild.item(k).nodeType==ELEMENT_NODE) //checks for Network,Owner inside Row
+                                        {
+                                            var nodeName=rowchild.item(k).nodeName;
+                                            if(nodeName=="Network" || nodeName=="Owner")
+                                            {
+                                                if(rowchild.item(k).hasChildNodes())
+                                                {
+                                                    if(rowchild.item(k).firstChild.nodeValue!=" ")
+                                                    { 
+                                                        text +="<td>"+ rowchild.item(k).firstChild.nodeValue+"</td>";
+                                                    
+                                                    }
+                                                    else
+                                                    {
+                                                        text +="<td>&nbsp;</td>";
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    text +="<td>&nbsp;</td>";
+                                                }
+                                            } /*End of Network and Owner */
+                                            
+                                            if(nodeName=="Feeds")            //check for Feeds here
+                                            {
+                                                text +="<td>";
+                                                var feed=rowchild.item(k).childNodes;            
+                                                var l=0;
+                                                text+="<ul>";
+                                                for(l=0;l<feed.length;l++)
+                                                {
+
+                                                    if(feed.item(l).nodeType==ELEMENT_NODE)
+                                                    {
+                                                        if(feed.item(l).hasChildNodes())
+                                                        {   
+                                                            if(feed.item(l).firstChild.nodeValue.trim() !="")
+                                                            {  
+                                                                text +="<li>"+ feed.item(l).firstChild.nodeValue+"</li>";    
+                                                            }
+                                                            else
+                                                            {
+                                                                text +="&nbsp;";
+                                                            }
+
+
+                                                        }
+                                                        else
+                                                        {
+                                                            text +="&nbsp;";
+                                                        }
+                                                    }   
+                                                }
+                                                text+="</ul>";
+                                                text +="</td>";
+                                            }/*End of Feeds */
+                                            
+                                    /*       if(nodeName=="Feeds")
+                                            {
+                                                var feed=rowchild.item(k).getElementsByTagName("Feed");
+                                                //console.log(feed.length);
+                                                text+="<td>";
+                                                var l=0;
+                                                for(l=0;l<feed.length;l++)
+                                                {
+                                                    text+="<ul>";
+                                                    text+="<li>"+feed[l].childNodes[0].nodeValue+"</li>";
+                                                    text+="</ul>";
+                                                }
+                                                text+="</td>";
+                                            
+                                            } /*End of Feeds*/
+
+                                            if(nodeName=="Notes")
+                                            {
+                                                if(rowchild.item(k).hasChildNodes())
+                                                {
+                                                    if(rowchild.item(k).firstChild.nodeValue!=" ")
+                                                    { 
+                                                        text +="<td>"+ rowchild.item(k).firstChild.nodeValue+"</td>";
+                                                    }
+                                                    else
+                                                    {
+                                                        text +="<td>&nbsp;</td>";
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    //console.log("Hello");
+                                                    text +="<td>&nbsp;</td>";
+                                                }
+                                            }/*End of Notes */
+                                            
+                                            if(nodeName=="HomePage")
+                                            {
+                                                if(rowchild.item(k).hasChildNodes())
+                                                {
+                                                    if(rowchild.item(k).firstChild.nodeValue!=" ")
+                                                    {
+                                                        text +="<td><a href='"+rowchild.item(k).firstChild.nodeValue+"' target='_blank'>"+rowchild.item(k).firstChild.nodeValue+"</td>";
+                                                    }
+                                                    else
+                                                    {
+                                                        text +="<td>&nbsp;</td>";
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    text +="<td>&nbsp;</td>";
+                                                }
+                                            } /*End of HomePage*/
+
+                                            if(nodeName=="Logo")
+                                            {
+                                                if(rowchild.item(k).hasChildNodes())
+                                                { 
+                                                    if(rowchild.item(k).firstChild.nodeValue!=" ")
+                                                    {                                   
+                                                        text +="<td colspan='3'><img src='"+ rowchild.item(k).firstChild.nodeValue+"' alt='"+rowchild.item(k).firstChild.nodeValue+"'></td>";
+                                                    }
+                                                    else
+                                                    {
+                                                        text +="<td colspan='3'>&nbsp;</td>";
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    text +="<td colspan='3'>&nbsp;</td>";
+                                                }
+                                            }/*End of Logo */
+
+                                        }/*if(rowchild.item(k).nodeType==1)*/                        
+                                    }
+                                    text +="</tr>";
+                                }/*if(table.item(j).nodeName=="Row") */
+                            }/*if(table.item(j).nodeType==1) */
+                        }/*end of j loop*/
+                    }
+                }
+                text +="</table>";
+                text +="</html>";
+            }
+        </script>
+    </head>
+    
+    <body>
+        <br /><br /><br />
+        <center>
+            <b>Enter URL for Network Company xml</b><br /><br />
+            <form name="abhi" method="POST" id="formid" action="">
+                <input type="text" name="URL" id="URL" maxlength="255" size="35" value="" autofocus autocomplete="on" placeholder="Enter the xml file in the same domain">
+                <br /><br />
+                <input type= "button" name= "submitquery" id="submit" value= "Submit Form" onClick= "parsexml(this.form)"/>
+            </form>
+        </center>
+        <noscript/>
+    </body>
+</html>    
